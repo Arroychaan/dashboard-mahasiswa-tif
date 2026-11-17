@@ -15,16 +15,19 @@ export const CLOCK_TICK_INTERVAL_MS = 1_000; // 1 second clock update
 export const GRADUATES_PAGE_SIZE = 10;
 export const LECTURERS_PAGE_SIZE = 4;
 export const PUBLICATIONS_PAGE_SIZE = 6;
+export const ANNOUNCEMENTS_PAGE_SIZE = 3;
 
 export type PublicSceneId =
   | "OVERVIEW"
   | "GRADUATES"
   | "LECTURERS"
-  | "PUBLICATIONS";
+  | "PUBLICATIONS"
+  | "ANNOUNCEMENTS"
+  | "FEEDBACK_QR";
 
 export interface PublicSceneDefinition {
-  id: PublicSceneId;
   orderNumber: number;
+  id: PublicSceneId;
   shortLabel: string;
   title: string;
   subtitle: string;
@@ -61,6 +64,20 @@ export const PUBLIC_SCENE_DEFINITIONS: readonly [
     shortLabel: "Publikasi",
     title: "Publikasi Ilmiah Program Studi",
     subtitle: "Rekapan jurnal dan artikel ilmiah dosen teknik informatika",
+  },
+  {
+    id: "ANNOUNCEMENTS",
+    orderNumber: 5,
+    shortLabel: "Pengumuman",
+    title: "Pengumuman & Berita Acara",
+    subtitle: "Agenda kegiatan, surat edaran, dan pengumuman resmi program studi",
+  },
+  {
+    id: "FEEDBACK_QR",
+    orderNumber: 6,
+    shortLabel: "Kotak Saran",
+    title: "Kotak Saran & Sumbangan",
+    subtitle: "Pindai kode QR untuk menyampaikan aspirasi atau sumbangan",
   },
 ] as const;
 

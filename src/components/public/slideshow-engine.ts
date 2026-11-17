@@ -4,6 +4,7 @@ import type {
   PublicPublicationStatsDTO,
 } from "~/lib/validators";
 import {
+  ANNOUNCEMENTS_PAGE_SIZE,
   GRADUATES_PAGE_SIZE,
   LECTURERS_PAGE_SIZE,
   PUBLICATIONS_PAGE_SIZE,
@@ -16,6 +17,7 @@ export interface SlideshowState {
   graduatePageIndex: number;
   lecturerPageIndex: number;
   publicationPageIndex: number;
+  announcementPageIndex: number;
   completedCycles: number;
 }
 
@@ -23,12 +25,14 @@ export interface SlideshowDatasetCounts {
   graduatesCount: number;
   lecturersCount: number;
   publicationsCount: number;
+  announcementsCount?: number;
 }
 
 export interface SlideshowPageSizes {
   graduatesPageSize?: number;
   lecturersPageSize?: number;
   publicationsPageSize?: number;
+  announcementsPageSize?: number;
 }
 
 export function createInitialSlideshowState(): SlideshowState {
@@ -37,6 +41,7 @@ export function createInitialSlideshowState(): SlideshowState {
     graduatePageIndex: 0,
     lecturerPageIndex: 0,
     publicationPageIndex: 0,
+    announcementPageIndex: 0,
     completedCycles: 0,
   };
 }
@@ -87,12 +92,18 @@ export function advanceSlideshowState(
   const gradPageSize = pageSizes?.graduatesPageSize ?? GRADUATES_PAGE_SIZE;
   const lectPageSize = pageSizes?.lecturersPageSize ?? LECTURERS_PAGE_SIZE;
   const pubPageSize = pageSizes?.publicationsPageSize ?? PUBLICATIONS_PAGE_SIZE;
+  const announcePageSize =
+    pageSizes?.announcementsPageSize ?? ANNOUNCEMENTS_PAGE_SIZE;
 
   const gradTotalPages = computeTotalPages(counts.graduatesCount, gradPageSize);
   const lectTotalPages = computeTotalPages(counts.lecturersCount, lectPageSize);
   const pubTotalPages = computeTotalPages(
     counts.publicationsCount,
     pubPageSize,
+  );
+  const announceTotalPages = computeTotalPages(
+    counts.announcementsCount ?? 0,
+    announcePageSize,
   );
 
   const currentSceneId = getActiveSceneId(current);
@@ -112,6 +123,11 @@ export function advanceSlideshowState(
     counts.publicationsCount,
     pubPageSize,
   );
+  let nextAnnouncePage = normalizePageIndex(
+    current.announcementPageIndex,
+    counts.announcementsCount ?? 0,
+    announcePageSize,
+  );
 
   if (currentSceneId === "GRADUATES") {
     nextGradPage = (nextGradPage + 1) % gradTotalPages;
@@ -119,6 +135,8 @@ export function advanceSlideshowState(
     nextLectPage = (nextLectPage + 1) % lectTotalPages;
   } else if (currentSceneId === "PUBLICATIONS") {
     nextPubPage = (nextPubPage + 1) % pubTotalPages;
+  } else if (currentSceneId === "ANNOUNCEMENTS") {
+    nextAnnouncePage = (nextAnnouncePage + 1) % announceTotalPages;
   }
 
   const nextSceneIndex =
@@ -133,6 +151,7 @@ export function advanceSlideshowState(
     graduatePageIndex: nextGradPage,
     lecturerPageIndex: nextLectPage,
     publicationPageIndex: nextPubPage,
+    announcementPageIndex: nextAnnouncePage,
     completedCycles: nextCompletedCycles,
   };
 }

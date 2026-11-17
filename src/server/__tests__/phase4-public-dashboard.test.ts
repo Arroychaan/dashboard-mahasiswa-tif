@@ -111,6 +111,7 @@ describe("Phase 4 Public Digital Signage Dashboard, Slideshow Engine & Scene Ver
         graduatesCount: 25, // 3 pages at pageSize=10 (10, 10, 5)
         lecturersCount: 9, // 3 pages at pageSize=4 (4, 4, 1)
         publicationsCount: 14, // 3 pages at pageSize=6 (6, 6, 2)
+        announcementsCount: 8, // 3 pages at pageSize=3 (3, 3, 2)
       };
 
       const graduateItems = Array.from({ length: 25 }, (_, i) => `grad-${i + 1}`);
@@ -119,16 +120,21 @@ describe("Phase 4 Public Digital Signage Dashboard, Slideshow Engine & Scene Ver
         { length: 14 },
         (_, i) => `pub-${i + 1}`,
       );
+      const announcementItems = Array.from(
+        { length: 8 },
+        (_, i) => `ann-${i + 1}`,
+      );
 
       const seenGraduates = new Set<string>();
       const seenLecturers = new Set<string>();
       const seenPublications = new Set<string>();
+      const seenAnnouncements = new Set<string>();
 
       let state = createInitialSlideshowState();
       expect(getActiveSceneId(state)).toBe("OVERVIEW");
 
-      // Simulate 3 full cycles (12 scene transitions = 3 * 4 scenes)
-      for (let step = 0; step < 12; step += 1) {
+      // Simulate 3 full cycles (18 scene transitions = 3 * 6 scenes)
+      for (let step = 0; step < 18; step += 1) {
         const currentScene = getActiveSceneId(state);
 
         if (currentScene === "GRADUATES") {
@@ -152,6 +158,13 @@ describe("Phase 4 Public Digital Signage Dashboard, Slideshow Engine & Scene Ver
             6,
           );
           for (const item of slice.pageItems) seenPublications.add(item);
+        } else if (currentScene === "ANNOUNCEMENTS") {
+          const slice = getPaginatedSlice(
+            announcementItems,
+            state.announcementPageIndex,
+            3,
+          );
+          for (const item of slice.pageItems) seenAnnouncements.add(item);
         }
 
         state = advanceSlideshowState(state, counts);
@@ -160,10 +173,11 @@ describe("Phase 4 Public Digital Signage Dashboard, Slideshow Engine & Scene Ver
       expect(state.completedCycles).toBe(3);
       expect(getActiveSceneId(state)).toBe("OVERVIEW");
 
-      // Every single graduate, lecturer, and publication was displayed across the 3 cycles
+      // Every single graduate, lecturer, publication, and announcement was displayed across the 3 cycles
       expect(seenGraduates.size).toBe(25);
       expect(seenLecturers.size).toBe(9);
       expect(seenPublications.size).toBe(14);
+      expect(seenAnnouncements.size).toBe(8);
 
       // Verify safe wrapping when dataset shrinks dynamically after a refresh
       const shrunkSlice = getPaginatedSlice(["only-one"], 5, 10);
