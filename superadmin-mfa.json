@@ -1,0 +1,16 @@
+{
+  "userId": "9ed35c77-4ba4-4784-a68d-3ed0a397c4eb",
+  "email": "admin@unissula.ac.id",
+  "otpauthUri": "otpauth://totp/Lab%20Informatika%20UNISSULA:admin%40unissula.ac.id?issuer=Lab%20Informatika%20UNISSULA&secret=CZPWXPCI4KUNLKPKZLRLTC3AEZGPUYAZ&algorithm=SHA1&digits=6&period=30",
+  "totpSecretBase32": "CZPWXPCI4KUNLKPKZLRLTC3AEZGPUYAZ",
+  "recoveryCodes": [
+    "CFA2E-A4BFB",
+    "CCE3A-121D1",
+    "303A5-4450B",
+    "9B7A6-78F66",
+    "80221-CD6AD",
+    "E10E8-2932E",
+    "CA3DB-1F257",
+    "81516-F1D3F"
+  ]
+}

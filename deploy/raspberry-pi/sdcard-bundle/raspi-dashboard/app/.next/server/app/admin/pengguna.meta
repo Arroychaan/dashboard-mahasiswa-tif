@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/pengguna/layout,_N_T_/admin/pengguna/page,_N_T_/admin/pengguna"
+  },
+  "routeCache": {
+    "key": "/route-cache/APP_PAGE/3807f55229ffd5247f71037e23ef32a086b2b25760eab2f676fad9926e9cae8c/$/admin/pengguna",
+    "owner": {
+      "kind": "APP_PAGE",
+      "sourceRoute": "/admin/pengguna/page"
+    },
+    "isFallback": false
+  }
+}

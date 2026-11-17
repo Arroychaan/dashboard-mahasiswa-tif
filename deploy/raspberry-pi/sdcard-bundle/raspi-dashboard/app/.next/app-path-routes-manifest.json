@@ -1,0 +1,15 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/api/admin/lecturer-photo/route": "/api/admin/lecturer-photo",
+  "/api/trpc/[trpc]/route": "/api/trpc/[trpc]",
+  "/api/auth/[...nextauth]/route": "/api/auth/[...nextauth]",
+  "/api/health/route": "/api/health",
+  "/page": "/",
+  "/admin/mahasiswa/page": "/admin/mahasiswa",
+  "/admin/dosen/page": "/admin/dosen",
+  "/admin/login/page": "/admin/login",
+  "/admin/pengguna/page": "/admin/pengguna",
+  "/admin/pengaturan/page": "/admin/pengaturan",
+  "/admin/page": "/admin",
+  "/admin/publikasi/page": "/admin/publikasi"
+}

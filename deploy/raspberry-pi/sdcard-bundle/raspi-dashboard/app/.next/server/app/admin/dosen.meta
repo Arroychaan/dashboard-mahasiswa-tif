@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/dosen/layout,_N_T_/admin/dosen/page,_N_T_/admin/dosen"
+  },
+  "routeCache": {
+    "key": "/route-cache/APP_PAGE/5cc196b4e1474addb95f6367e8e5f107053f296bed2d29ea3203f91dc60646b2/$/admin/dosen",
+    "owner": {
+      "kind": "APP_PAGE",
+      "sourceRoute": "/admin/dosen/page"
+    },
+    "isFallback": false
+  }
+}

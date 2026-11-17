@@ -1,0 +1,8 @@
+allowBuilds:
+  esbuild: true
+  sharp: true
+
+overrides:
+  "@auth/core": ">=0.41.3"
+  esbuild: ">=0.25.0"
+  postcss: ">=8.5.32"

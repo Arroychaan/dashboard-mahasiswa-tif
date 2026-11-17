@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/publikasi/layout,_N_T_/admin/publikasi/page,_N_T_/admin/publikasi"
+  },
+  "routeCache": {
+    "key": "/route-cache/APP_PAGE/3806038f7fd1a16bd61de041ad3d54559d21d71aa6a72467c8f31e947119ba2e/$/admin/publikasi",
+    "owner": {
+      "kind": "APP_PAGE",
+      "sourceRoute": "/admin/publikasi/page"
+    },
+    "isFallback": false
+  }
+}

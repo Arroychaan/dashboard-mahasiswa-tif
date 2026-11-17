@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/mahasiswa/layout,_N_T_/admin/mahasiswa/page,_N_T_/admin/mahasiswa"
+  },
+  "routeCache": {
+    "key": "/route-cache/APP_PAGE/25b6878b77929350a78a31b24340d2addc4704c9853abec574062aa3fc132057/$/admin/mahasiswa",
+    "owner": {
+      "kind": "APP_PAGE",
+      "sourceRoute": "/admin/mahasiswa/page"
+    },
+    "isFallback": false
+  }
+}
