@@ -271,7 +271,7 @@ export function PublicDashboardSlideshow({
 
         {activeSceneId === "ANNOUNCEMENTS" && (
           <AnnouncementsScene
-            announcements={announcements as unknown as PublicAnnouncementItem[]}
+            announcements={announcements}
             pageIndex={slideshowState.announcementPageIndex}
             themeTokens={themeTokens}
           />

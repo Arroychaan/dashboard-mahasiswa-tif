@@ -25,7 +25,7 @@ export function FeedbackQrScene({
       className="flex min-h-0 flex-1 flex-col items-center justify-center p-4 lg:p-6 overflow-hidden"
     >
       <div
-        className={`w-full max-w-2xl rounded-3xl border p-8 sm:p-10 lg:p-12 shadow-xl flex flex-col items-center text-center transition-all ${themeTokens.surface.card} ${themeTokens.surface.border}`}
+        className={`w-full max-w-2xl rounded-3xl border p-8 sm:p-10 lg:p-12 shadow-xl flex flex-col items-center text-center transition-all ${themeTokens.surface.card} ${themeTokens.surface.cardBorder}`}
       >
         {/* QR Code Container - Always pure white background for 100% scan reliability */}
         <div className="relative h-60 w-60 sm:h-72 sm:w-72 lg:h-80 lg:w-80 rounded-2xl bg-white p-4 sm:p-5 shadow-2xl border-4 border-emerald-600/30 ring-4 ring-black/5 flex items-center justify-center">
@@ -42,14 +42,14 @@ export function FeedbackQrScene({
 
         {/* Title */}
         <h3
-          className={`mt-6 sm:mt-8 text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${themeTokens.surface.title}`}
+          className={`mt-6 sm:mt-8 text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${themeTokens.header.title}`}
         >
           {feedbackQr.title}
         </h3>
 
         {/* Description Copy */}
         <p
-          className={`mt-3 max-w-lg text-sm sm:text-base lg:text-lg leading-relaxed ${themeTokens.surface.body}`}
+          className={`mt-3 max-w-lg text-sm sm:text-base lg:text-lg leading-relaxed ${themeTokens.header.subtitle}`}
         >
           {feedbackQr.description}
         </p>

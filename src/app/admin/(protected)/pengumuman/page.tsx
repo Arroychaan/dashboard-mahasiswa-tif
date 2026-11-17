@@ -459,14 +459,14 @@ export default function AdminAnnouncementsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => setDetailTarget(row as unknown as AnnouncementRow)}
+                          onClick={() => setDetailTarget(row)}
                           className="rounded px-2.5 py-1 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
                         >
                           Lihat
                         </button>
                         <button
                           type="button"
-                          onClick={() => openEditForm(row as unknown as AnnouncementRow)}
+                          onClick={() => openEditForm(row)}
                           className="rounded px-2.5 py-1 text-emerald-400 hover:bg-emerald-950/60 hover:text-emerald-300 transition-colors"
                         >
                           Ubah
@@ -492,9 +492,7 @@ export default function AdminAnnouncementsPage() {
                             </button>
                             <button
                               type="button"
-                              onClick={() =>
-                                setDeleteTarget(row as unknown as AnnouncementRow)
-                              }
+                              onClick={() => setDeleteTarget(row)}
                               className="rounded px-2.5 py-1 text-rose-400 hover:bg-rose-950/60 hover:text-rose-300 transition-colors"
                             >
                               Hapus

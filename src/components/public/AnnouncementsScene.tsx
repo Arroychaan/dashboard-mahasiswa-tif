@@ -39,7 +39,7 @@ export function AnnouncementsScene({
         className="flex min-h-0 flex-1 flex-col items-center justify-center p-6 text-center"
       >
         <div
-          className={`max-w-md rounded-2xl border p-8 shadow-sm ${themeTokens.surface.card} ${themeTokens.surface.border}`}
+          className={`max-w-md rounded-2xl border p-8 shadow-sm ${themeTokens.surface.card} ${themeTokens.surface.cardBorder}`}
         >
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
             <svg
@@ -56,10 +56,10 @@ export function AnnouncementsScene({
               />
             </svg>
           </div>
-          <h3 className={`text-lg font-bold ${themeTokens.surface.title}`}>
+          <h3 className={`text-lg font-bold ${themeTokens.header.title}`}>
             Belum Ada Pengumuman Terbit
           </h3>
-          <p className={`mt-2 text-xs sm:text-sm ${themeTokens.surface.body}`}>
+          <p className={`mt-2 text-xs sm:text-sm ${themeTokens.header.subtitle}`}>
             Agenda kegiatan, surat edaran, dan berita acara Program Studi Teknik Informatika UNISSULA akan tampil di sini saat dipublikasikan.
           </p>
         </div>
@@ -88,7 +88,7 @@ export function AnnouncementsScene({
           return (
             <article
               key={item.id}
-              className={`flex min-h-0 flex-col justify-between rounded-2xl border p-5 sm:p-6 transition-all shadow-sm ${themeTokens.surface.card} ${themeTokens.surface.border}`}
+              className={`flex min-h-0 flex-col justify-between rounded-2xl border p-5 sm:p-6 transition-all shadow-sm ${themeTokens.surface.card} ${themeTokens.surface.cardBorder}`}
             >
               <div className="space-y-3">
                 {/* Badge Category and Event Date */}
@@ -109,14 +109,14 @@ export function AnnouncementsScene({
 
                 {/* Announcement Title */}
                 <h3
-                  className={`text-base font-extrabold sm:text-lg lg:text-xl line-clamp-2 leading-snug ${themeTokens.surface.title}`}
+                  className={`text-base font-extrabold sm:text-lg lg:text-xl line-clamp-2 leading-snug ${themeTokens.header.title}`}
                 >
                   {item.title}
                 </h3>
 
                 {/* Announcement Excerpt / Content Body */}
                 <p
-                  className={`text-xs sm:text-sm leading-relaxed line-clamp-6 lg:line-clamp-8 whitespace-pre-line ${themeTokens.surface.body}`}
+                  className={`text-xs sm:text-sm leading-relaxed line-clamp-6 lg:line-clamp-8 whitespace-pre-line ${themeTokens.header.subtitle}`}
                 >
                   {item.content}
                 </p>
