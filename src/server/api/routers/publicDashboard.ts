@@ -18,7 +18,9 @@ import {
   publicProcedure,
   type TRPCContext,
 } from "~/server/api/trpc";
+import { DEFAULT_FEEDBACK_QR } from "~/server/api/routers/systemSettings";
 import {
+  announcements,
   graduates,
   lecturers,
   publicationAuthors,
@@ -376,4 +378,53 @@ export const publicDashboardRouter = createTRPCRouter({
         return { theme: "LIGHT" as const };
       }
     }),
+
+  /**
+   * Published announcements ordered by eventDate descending for Slide 5.
+   */
+  announcements: publicProcedure.query(async ({ ctx }) => {
+    return ctx.db
+      .select({
+        id: announcements.id,
+        title: announcements.title,
+        category: announcements.category,
+        content: announcements.content,
+        eventDate: announcements.eventDate,
+        isPublished: announcements.isPublished,
+        createdAt: announcements.createdAt,
+        updatedAt: announcements.updatedAt,
+      })
+      .from(announcements)
+      .where(eq(announcements.isPublished, true))
+      .orderBy(desc(announcements.eventDate));
+  }),
+
+  /**
+   * Feedback and suggestion QR code configuration for Slide 6.
+   */
+  feedbackQr: publicProcedure.query(async ({ ctx }) => {
+    try {
+      const rows = await ctx.db
+        .select({ key: systemSettings.key, value: systemSettings.value })
+        .from(systemSettings)
+        .where(
+          inArray(systemSettings.key, [
+            "feedback_qr_path",
+            "feedback_title",
+            "feedback_description",
+          ]),
+        );
+
+      const map = new Map(rows.map((r) => [r.key, r.value]));
+
+      return {
+        qrPath: map.get("feedback_qr_path") ?? DEFAULT_FEEDBACK_QR.qrPath,
+        title: map.get("feedback_title") ?? DEFAULT_FEEDBACK_QR.title,
+        description:
+          map.get("feedback_description") ?? DEFAULT_FEEDBACK_QR.description,
+      };
+    } catch {
+      return DEFAULT_FEEDBACK_QR;
+    }
+  }),
 });

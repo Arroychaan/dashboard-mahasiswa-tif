@@ -1,3 +1,4 @@
+import { announcementsRouter } from "~/server/api/routers/announcements";
 import { auditLogsRouter } from "~/server/api/routers/auditLogs";
 import { graduatesRouter } from "~/server/api/routers/graduates";
 import { lecturersRouter } from "~/server/api/routers/lecturers";
@@ -12,6 +13,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   publicDashboard: publicDashboardRouter,
+  announcements: announcementsRouter,
   graduates: graduatesRouter,
   lecturers: lecturersRouter,
   publications: publicationsRouter,
