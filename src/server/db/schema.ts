@@ -32,9 +32,16 @@ export const systemThemeEnum = pgEnum("system_theme", [
   "MONOCHROME",
 ]);
 
+export const announcementCategoryEnum = pgEnum("announcement_category", [
+  "PENGUMUMAN",
+  "BERITA_ACARA",
+]);
+
 export type PublicationKind = (typeof publicationKindEnum.enumValues)[number];
 export type UserRole = (typeof userRoleEnum.enumValues)[number];
 export type SystemTheme = (typeof systemThemeEnum.enumValues)[number];
+export type AnnouncementCategory =
+  (typeof announcementCategoryEnum.enumValues)[number];
 
 /**
  * 1. graduates
@@ -311,4 +318,34 @@ export const systemSettingsRelations = relations(systemSettings, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+/**
+ * 8. announcements
+ * Academic announcements & official proceedings for digital signage & admin.
+ */
+export const announcements = pgTable(
+  "announcements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: varchar("title", { length: 255 }).notNull(),
+    category: announcementCategoryEnum("category")
+      .default("PENGUMUMAN")
+      .notNull(),
+    content: text("content").notNull(),
+    eventDate: timestamp("event_date", { withTimezone: true }).notNull(),
+    isPublished: boolean("is_published").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    index("announcements_category_idx").on(t.category),
+    index("announcements_is_published_idx").on(t.isPublished),
+    index("announcements_event_date_idx").on(t.eventDate),
+  ],
+);
 

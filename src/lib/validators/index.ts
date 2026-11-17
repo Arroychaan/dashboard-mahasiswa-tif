@@ -389,3 +389,130 @@ export type PublicPublicationStatsDTO = z.infer<
   typeof publicPublicationStatsDtoSchema
 >;
 export type UserDTO = z.infer<typeof userDtoSchema>;
+
+/**
+ * 6. Announcement & Feedback QR Schemas
+ */
+export const announcementCategorySchema = z.enum([
+  "PENGUMUMAN",
+  "BERITA_ACARA",
+]);
+
+export const announcementIdSchema = z.object({
+  id: z.string().uuid("ID Pengumuman tidak valid"),
+});
+
+export const listAnnouncementsInputSchema = z
+  .object({
+    search: z.string().trim().max(255).optional(),
+    category: announcementCategorySchema.optional(),
+    isPublished: z.boolean().optional(),
+    limit: z.number().int().min(1).max(100).default(50),
+    offset: z.number().int().min(0).default(0),
+  })
+  .optional();
+
+export const createAnnouncementSchema = z
+  .object({
+    title: z
+      .string()
+      .trim()
+      .min(3, "Judul minimal 3 karakter")
+      .max(255, "Judul maksimal 255 karakter"),
+    category: announcementCategorySchema.default("PENGUMUMAN"),
+    content: z
+      .string()
+      .trim()
+      .min(5, "Isi pengumuman minimal 5 karakter")
+      .max(5000, "Isi pengumuman maksimal 5000 karakter"),
+    eventDate: z.coerce.date({
+      invalid_type_error: "Format tanggal tidak valid",
+    }),
+    isPublished: z.boolean().default(false),
+  })
+  .strict();
+
+export const updateAnnouncementSchema = z
+  .object({
+    id: z.string().uuid("ID Pengumuman tidak valid"),
+    title: z
+      .string()
+      .trim()
+      .min(3, "Judul minimal 3 karakter")
+      .max(255, "Judul maksimal 255 karakter")
+      .optional(),
+    category: announcementCategorySchema.optional(),
+    content: z
+      .string()
+      .trim()
+      .min(5, "Isi pengumuman minimal 5 karakter")
+      .max(5000, "Isi pengumuman maksimal 5000 karakter")
+      .optional(),
+    eventDate: z.coerce
+      .date({
+        invalid_type_error: "Format tanggal tidak valid",
+      })
+      .optional(),
+  })
+  .strict();
+
+export const setPublishedAnnouncementSchema = z
+  .object({
+    id: z.string().uuid("ID Pengumuman tidak valid"),
+    isPublished: z.boolean(),
+  })
+  .strict();
+
+export const updateFeedbackQrSchema = z
+  .object({
+    qrPath: z
+      .string()
+      .trim()
+      .max(255)
+      .refine(
+        (val) =>
+          val.startsWith("/uploads/qr/") ||
+          val.startsWith("/contoh.") ||
+          val === "/contoh.png",
+        {
+          message:
+            "Jalur file QR harus berada di direktori /uploads/qr/ atau aset resmi",
+        },
+      ),
+    title: z
+      .string()
+      .trim()
+      .min(3, "Judul minimal 3 karakter")
+      .max(100, "Judul maksimal 100 karakter")
+      .default("Kotak Saran & Sumbangan"),
+    description: z
+      .string()
+      .trim()
+      .min(5, "Deskripsi minimal 5 karakter")
+      .max(500, "Deskripsi maksimal 500 karakter")
+      .default(
+        "Pindai kode QR untuk menyampaikan aspirasi, kritik & saran, atau sumbangan bagi Program Studi Teknik Informatika UNISSULA.",
+      ),
+  })
+  .strict();
+
+export const publicAnnouncementDtoSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  category: announcementCategorySchema,
+  content: z.string(),
+  eventDate: z.date(),
+  createdAt: z.date(),
+});
+
+export const publicFeedbackQrDtoSchema = z.object({
+  qrPath: z.string(),
+  title: z.string(),
+  description: z.string(),
+});
+
+export type PublicAnnouncementDTO = z.infer<typeof publicAnnouncementDtoSchema>;
+export type PublicFeedbackQrDTO = z.infer<typeof publicFeedbackQrDtoSchema>;
+export type AnnouncementCategoryType = z.infer<
+  typeof announcementCategorySchema
+>;
