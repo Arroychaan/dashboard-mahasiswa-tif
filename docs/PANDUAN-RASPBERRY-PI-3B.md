@@ -60,6 +60,30 @@ Setelah Raspberry Pi Imager selesai menulis OS:
 
 ---
 
+## Cara Mengupdate Fitur / Kode Terbaru ke Raspberry Pi 3B
+
+Jika Anda baru saja memperbarui kode (seperti penambahan Slide 5 Pengumuman & Slide 6 Kotak Saran & Sumbangan), ada 2 cara mudah untuk mengirimkan update ke Raspberry Pi 3B:
+
+### Metode A: Lewat WiFi / Jaringan (Paling Praktis Tanpa Cabut SD Card)
+Gunakan cara ini jika Raspberry Pi sedang menyala dan tersambung ke WiFi yang sama dengan laptop Anda:
+1. Pastikan laptop dan Raspberry Pi berada dalam satu jaringan WiFi.
+2. Buka folder proyek di laptop: `D:\Achmad Roychan\Proyek\dashboard-data-mahasiswa\`.
+3. **Klik 2x file [`UPDATE-VIA-WIFI.bat`](file:///d:/Achmad%20Roychan/Proyek/dashboard-data-mahasiswa/UPDATE-VIA-WIFI.bat)**.
+   * Skrip otomatis mengompresi hasil *build* terbaru (`.next`, `public`, `drizzle`, `src`, dll).
+   * Mengirim paket ke Raspberry Pi via SSH/SCP.
+   * Menjalankan migrasi database PostgreSQL (membuat tabel `announcements` otomatis).
+   * Me-restart server dashboard dan layar monitor Raspi tanpa mematikan alat.
+4. Selesai! Layar monitor lab akan langsung memperbarui tampilannya menjadi 6 slide.
+
+### Metode B: Lewat SD Card (Drive `E:`)
+Gunakan cara ini jika Raspberry Pi sedang mati atau Anda ingin memperbarui paket langsung di SD Card:
+1. Matikan Raspberry Pi, cabut SD Card, lalu colokkan USB SD Card ke laptop (terbaca sebagai **Drive `E:`**).
+2. **Klik 2x file [`PASANG-KE-SDCARD-E.bat`](file:///d:/Achmad%20Roychan/Proyek/dashboard-data-mahasiswa/PASANG-KE-SDCARD-E.bat)**.
+   * Skrip otomatis memperbarui paket di `E:\raspi-dashboard\`.
+3. Cabut SD Card dari laptop, pasang kembali ke Raspberry Pi 3B, dan nyalakan adaptor daya.
+
+---
+
 ## Cara Mengganti / Menambah WiFi Saat Pindah dari Kos ke Lab
 
 Tidak perlu menginstal ulang apa pun saat alat dipindahkan dari kos ke Lab Informatika:
