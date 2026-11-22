@@ -5,6 +5,11 @@
 }
 
 @layer base {
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
   a[href],
   button:not(:disabled),
   summary,
@@ -16,6 +21,7 @@
   [role="tab"]:not([aria-disabled="true"]),
   [role="switch"]:not([aria-disabled="true"]) {
     cursor: pointer;
+    touch-action: manipulation;
   }
 
   button:disabled,
