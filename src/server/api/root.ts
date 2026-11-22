@@ -1,5 +1,6 @@
 import { announcementsRouter } from "~/server/api/routers/announcements";
 import { auditLogsRouter } from "~/server/api/routers/auditLogs";
+import { courseSchedulesRouter } from "~/server/api/routers/courseSchedules";
 import { graduatesRouter } from "~/server/api/routers/graduates";
 import { lecturersRouter } from "~/server/api/routers/lecturers";
 import { publicationsRouter } from "~/server/api/routers/publications";
@@ -14,6 +15,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 export const appRouter = createTRPCRouter({
   publicDashboard: publicDashboardRouter,
   announcements: announcementsRouter,
+  courseSchedules: courseSchedulesRouter,
   graduates: graduatesRouter,
   lecturers: lecturersRouter,
   publications: publicationsRouter,

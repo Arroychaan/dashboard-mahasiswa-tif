@@ -1,7 +1,8 @@
-import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import {
+  publicCourseScheduleDtoSchema,
   publicGraduateStatsDtoSchema,
   publicLecturerDtoSchema,
   publicOverviewDtoSchema,
@@ -21,6 +22,7 @@ import {
 import { DEFAULT_FEEDBACK_QR } from "~/server/api/routers/systemSettings";
 import {
   announcements,
+  courseSchedules,
   graduates,
   lecturers,
   publicationAuthors,
@@ -106,6 +108,20 @@ async function buildOverview(ctx: TRPCContext): Promise<PublicOverviewDTO> {
 
   if (latestLect) {
     const ts = latestLect.updatedAt.getTime();
+    if (latestTimestamp === null || ts > latestTimestamp) {
+      latestTimestamp = ts;
+    }
+  }
+
+  const [latestSchedule] = await ctx.db
+    .select({ updatedAt: courseSchedules.updatedAt })
+    .from(courseSchedules)
+    .where(eq(courseSchedules.isPublished, true))
+    .orderBy(desc(courseSchedules.updatedAt))
+    .limit(1);
+
+  if (latestSchedule) {
+    const ts = latestSchedule.updatedAt.getTime();
     if (latestTimestamp === null || ts > latestTimestamp) {
       latestTimestamp = ts;
     }
@@ -427,4 +443,43 @@ export const publicDashboardRouter = createTRPCRouter({
       return DEFAULT_FEEDBACK_QR;
     }
   }),
+
+  /**
+   * Published weekly course schedules ordered Mon–Sat then startTime asc for Slide 7.
+   */
+  courseSchedules: publicProcedure
+    .output(z.array(publicCourseScheduleDtoSchema))
+    .query(async ({ ctx }) => {
+      const dayRankSql = sql<number>`CASE ${courseSchedules.dayOfWeek}
+        WHEN 'SENIN' THEN 1
+        WHEN 'SELASA' THEN 2
+        WHEN 'RABU' THEN 3
+        WHEN 'KAMIS' THEN 4
+        WHEN 'JUMAT' THEN 5
+        WHEN 'SABTU' THEN 6
+        ELSE 7
+      END`;
+
+      return ctx.db
+        .select({
+          id: courseSchedules.id,
+          dayOfWeek: courseSchedules.dayOfWeek,
+          startTime: courseSchedules.startTime,
+          endTime: courseSchedules.endTime,
+          courseName: courseSchedules.courseName,
+          className: courseSchedules.className,
+          roomName: courseSchedules.roomName,
+          lecturerName: courseSchedules.lecturerName,
+          semester: courseSchedules.semester,
+          academicYear: courseSchedules.academicYear,
+        })
+        .from(courseSchedules)
+        .where(eq(courseSchedules.isPublished, true))
+        .orderBy(
+          dayRankSql,
+          asc(courseSchedules.startTime),
+          asc(courseSchedules.roomName),
+          asc(courseSchedules.courseName),
+        );
+    }),
 });
