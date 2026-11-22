@@ -5,6 +5,7 @@ import type {
 } from "~/lib/validators";
 import {
   ANNOUNCEMENTS_PAGE_SIZE,
+  COURSE_SCHEDULES_PAGE_SIZE,
   GRADUATES_PAGE_SIZE,
   LECTURERS_PAGE_SIZE,
   PUBLICATIONS_PAGE_SIZE,
@@ -18,6 +19,7 @@ export interface SlideshowState {
   lecturerPageIndex: number;
   publicationPageIndex: number;
   announcementPageIndex: number;
+  courseSchedulePageIndex: number;
   completedCycles: number;
 }
 
@@ -26,6 +28,7 @@ export interface SlideshowDatasetCounts {
   lecturersCount: number;
   publicationsCount: number;
   announcementsCount?: number;
+  courseSchedulesCount?: number;
 }
 
 export interface SlideshowPageSizes {
@@ -33,6 +36,7 @@ export interface SlideshowPageSizes {
   lecturersPageSize?: number;
   publicationsPageSize?: number;
   announcementsPageSize?: number;
+  courseSchedulesPageSize?: number;
 }
 
 export function createInitialSlideshowState(): SlideshowState {
@@ -42,7 +46,30 @@ export function createInitialSlideshowState(): SlideshowState {
     lecturerPageIndex: 0,
     publicationPageIndex: 0,
     announcementPageIndex: 0,
+    courseSchedulePageIndex: 0,
     completedCycles: 0,
+  };
+}
+
+export function jumpToScene(
+  current: SlideshowState,
+  sceneId: PublicSceneId,
+): SlideshowState {
+  const targetIndex = PUBLIC_SCENE_DEFINITIONS.findIndex(
+    (s) => s.id === sceneId,
+  );
+  if (targetIndex < 0) return current;
+  return {
+    ...current,
+    sceneIndex: targetIndex,
+  };
+}
+
+export function resetToAttractState(current: SlideshowState): SlideshowState {
+  return {
+    ...current,
+    sceneIndex: 0,
+    courseSchedulePageIndex: 0,
   };
 }
 
@@ -94,6 +121,8 @@ export function advanceSlideshowState(
   const pubPageSize = pageSizes?.publicationsPageSize ?? PUBLICATIONS_PAGE_SIZE;
   const announcePageSize =
     pageSizes?.announcementsPageSize ?? ANNOUNCEMENTS_PAGE_SIZE;
+  const schedulePageSize =
+    pageSizes?.courseSchedulesPageSize ?? COURSE_SCHEDULES_PAGE_SIZE;
 
   const gradTotalPages = computeTotalPages(counts.graduatesCount, gradPageSize);
   const lectTotalPages = computeTotalPages(counts.lecturersCount, lectPageSize);
@@ -104,6 +133,10 @@ export function advanceSlideshowState(
   const announceTotalPages = computeTotalPages(
     counts.announcementsCount ?? 0,
     announcePageSize,
+  );
+  const scheduleTotalPages = computeTotalPages(
+    counts.courseSchedulesCount ?? 0,
+    schedulePageSize,
   );
 
   const currentSceneId = getActiveSceneId(current);
@@ -128,6 +161,11 @@ export function advanceSlideshowState(
     counts.announcementsCount ?? 0,
     announcePageSize,
   );
+  let nextSchedulePage = normalizePageIndex(
+    current.courseSchedulePageIndex,
+    counts.courseSchedulesCount ?? 0,
+    schedulePageSize,
+  );
 
   if (currentSceneId === "GRADUATES") {
     nextGradPage = (nextGradPage + 1) % gradTotalPages;
@@ -137,6 +175,8 @@ export function advanceSlideshowState(
     nextPubPage = (nextPubPage + 1) % pubTotalPages;
   } else if (currentSceneId === "ANNOUNCEMENTS") {
     nextAnnouncePage = (nextAnnouncePage + 1) % announceTotalPages;
+  } else if (currentSceneId === "COURSE_SCHEDULE") {
+    nextSchedulePage = (nextSchedulePage + 1) % scheduleTotalPages;
   }
 
   const nextSceneIndex =
@@ -152,6 +192,7 @@ export function advanceSlideshowState(
     lecturerPageIndex: nextLectPage,
     publicationPageIndex: nextPubPage,
     announcementPageIndex: nextAnnouncePage,
+    courseSchedulePageIndex: nextSchedulePage,
     completedCycles: nextCompletedCycles,
   };
 }

@@ -52,6 +52,8 @@ async function applyMigrations(client: PGlite) {
 async function truncateAllTables(client: PGlite) {
   await client.exec(`
     TRUNCATE TABLE
+      "course_schedules",
+      "announcements",
       "publication_authors",
       "publications",
       "lecturers",
@@ -112,6 +114,7 @@ describe("Phase 4 Public Digital Signage Dashboard, Slideshow Engine & Scene Ver
         lecturersCount: 9, // 3 pages at pageSize=4 (4, 4, 1)
         publicationsCount: 14, // 3 pages at pageSize=6 (6, 6, 2)
         announcementsCount: 8, // 3 pages at pageSize=3 (3, 3, 2)
+        courseSchedulesCount: 14, // 3 pages at pageSize=6 (6, 6, 2)
       };
 
       const graduateItems = Array.from({ length: 25 }, (_, i) => `grad-${i + 1}`);
@@ -124,17 +127,22 @@ describe("Phase 4 Public Digital Signage Dashboard, Slideshow Engine & Scene Ver
         { length: 8 },
         (_, i) => `ann-${i + 1}`,
       );
+      const scheduleItems = Array.from(
+        { length: 14 },
+        (_, i) => `sched-${i + 1}`,
+      );
 
       const seenGraduates = new Set<string>();
       const seenLecturers = new Set<string>();
       const seenPublications = new Set<string>();
       const seenAnnouncements = new Set<string>();
+      const seenSchedules = new Set<string>();
 
       let state = createInitialSlideshowState();
       expect(getActiveSceneId(state)).toBe("OVERVIEW");
 
-      // Simulate 3 full cycles (18 scene transitions = 3 * 6 scenes)
-      for (let step = 0; step < 18; step += 1) {
+      // Simulate 3 full cycles (21 scene transitions = 3 * 7 scenes)
+      for (let step = 0; step < 21; step += 1) {
         const currentScene = getActiveSceneId(state);
 
         if (currentScene === "GRADUATES") {
@@ -165,6 +173,13 @@ describe("Phase 4 Public Digital Signage Dashboard, Slideshow Engine & Scene Ver
             3,
           );
           for (const item of slice.pageItems) seenAnnouncements.add(item);
+        } else if (currentScene === "COURSE_SCHEDULE") {
+          const slice = getPaginatedSlice(
+            scheduleItems,
+            state.courseSchedulePageIndex,
+            6,
+          );
+          for (const item of slice.pageItems) seenSchedules.add(item);
         }
 
         state = advanceSlideshowState(state, counts);
@@ -173,11 +188,12 @@ describe("Phase 4 Public Digital Signage Dashboard, Slideshow Engine & Scene Ver
       expect(state.completedCycles).toBe(3);
       expect(getActiveSceneId(state)).toBe("OVERVIEW");
 
-      // Every single graduate, lecturer, publication, and announcement was displayed across the 3 cycles
+      // Every single graduate, lecturer, publication, announcement, and schedule was displayed across the 3 cycles
       expect(seenGraduates.size).toBe(25);
       expect(seenLecturers.size).toBe(9);
       expect(seenPublications.size).toBe(14);
       expect(seenAnnouncements.size).toBe(8);
+      expect(seenSchedules.size).toBe(14);
 
       // Verify safe wrapping when dataset shrinks dynamically after a refresh
       const shrunkSlice = getPaginatedSlice(["only-one"], 5, 10);

@@ -11,11 +11,13 @@
 export const DEFAULT_SCENE_DURATION_MS = 15_000; // 15 seconds per scene
 export const DEFAULT_DATA_REFRESH_INTERVAL_MS = 60_000; // 60 seconds background refresh
 export const CLOCK_TICK_INTERVAL_MS = 1_000; // 1 second clock update
+export const IDLE_TIMEOUT_MS = 45_000; // 45 seconds idle reset for touch kiosk
 
 export const GRADUATES_PAGE_SIZE = 10;
 export const LECTURERS_PAGE_SIZE = 4;
 export const PUBLICATIONS_PAGE_SIZE = 6;
 export const ANNOUNCEMENTS_PAGE_SIZE = 3;
+export const COURSE_SCHEDULES_PAGE_SIZE = 6;
 
 export type PublicSceneId =
   | "OVERVIEW"
@@ -23,7 +25,8 @@ export type PublicSceneId =
   | "LECTURERS"
   | "PUBLICATIONS"
   | "ANNOUNCEMENTS"
-  | "FEEDBACK_QR";
+  | "FEEDBACK_QR"
+  | "COURSE_SCHEDULE";
 
 export interface PublicSceneDefinition {
   orderNumber: number;
@@ -78,6 +81,14 @@ export const PUBLIC_SCENE_DEFINITIONS: readonly [
     shortLabel: "Kotak Saran",
     title: "Kotak Saran & Sumbangan",
     subtitle: "Pindai kode QR untuk menyampaikan aspirasi atau sumbangan",
+  },
+  {
+    id: "COURSE_SCHEDULE",
+    orderNumber: 7,
+    shortLabel: "Jadwal",
+    title: "Jadwal Mata Kuliah Program Studi",
+    subtitle:
+      "Jadwal perkuliahan harian, ruangan, dan dosen pengampu Teknik Informatika",
   },
 ] as const;
 
