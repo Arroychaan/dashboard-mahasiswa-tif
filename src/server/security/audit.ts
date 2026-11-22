@@ -52,7 +52,8 @@ export interface AuditLogInput {
     | "USER"
     | "AUTH"
     | "SYSTEM_SETTING"
-    | "ANNOUNCEMENT";
+    | "ANNOUNCEMENT"
+    | "COURSE_SCHEDULE";
   entityId?: string | null;
   metadata?: Record<string, unknown>;
 }

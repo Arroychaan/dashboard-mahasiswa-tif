@@ -37,11 +37,21 @@ export const announcementCategoryEnum = pgEnum("announcement_category", [
   "BERITA_ACARA",
 ]);
 
+export const dayOfWeekEnum = pgEnum("day_of_week", [
+  "SENIN",
+  "SELASA",
+  "RABU",
+  "KAMIS",
+  "JUMAT",
+  "SABTU",
+]);
+
 export type PublicationKind = (typeof publicationKindEnum.enumValues)[number];
 export type UserRole = (typeof userRoleEnum.enumValues)[number];
 export type SystemTheme = (typeof systemThemeEnum.enumValues)[number];
 export type AnnouncementCategory =
   (typeof announcementCategoryEnum.enumValues)[number];
+export type DayOfWeek = (typeof dayOfWeekEnum.enumValues)[number];
 
 /**
  * 1. graduates
@@ -346,6 +356,48 @@ export const announcements = pgTable(
     index("announcements_category_idx").on(t.category),
     index("announcements_is_published_idx").on(t.isPublished),
     index("announcements_event_date_idx").on(t.eventDate),
+  ],
+);
+
+/**
+ * 9. course_schedules
+ * Informatics Engineering weekly course schedules for Slide 7 & touch kiosk.
+ */
+export const courseSchedules = pgTable(
+  "course_schedules",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    dayOfWeek: dayOfWeekEnum("day_of_week").notNull(),
+    startTime: varchar("start_time", { length: 5 }).notNull(),
+    endTime: varchar("end_time", { length: 5 }).notNull(),
+    courseName: varchar("course_name", { length: 255 }).notNull(),
+    className: varchar("class_name", { length: 32 }).notNull(),
+    roomName: varchar("room_name", { length: 64 }).notNull(),
+    lecturerName: varchar("lecturer_name", { length: 255 }).notNull(),
+    semester: integer("semester"),
+    academicYear: varchar("academic_year", { length: 32 }),
+    isPublished: boolean("is_published").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (t) => [
+    index("course_schedules_day_idx").on(t.dayOfWeek),
+    index("course_schedules_room_idx").on(t.roomName),
+    index("course_schedules_is_published_idx").on(t.isPublished),
+    index("course_schedules_published_day_start_idx").on(
+      t.isPublished,
+      t.dayOfWeek,
+      t.startTime,
+    ),
+    check(
+      "course_schedules_semester_range_chk",
+      sql`${t.semester} IS NULL OR (${t.semester} >= 1 AND ${t.semester} <= 8)`,
+    ),
   ],
 );
 

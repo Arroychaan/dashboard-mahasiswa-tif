@@ -516,3 +516,133 @@ export type PublicFeedbackQrDTO = z.infer<typeof publicFeedbackQrDtoSchema>;
 export type AnnouncementCategoryType = z.infer<
   typeof announcementCategorySchema
 >;
+
+/**
+ * 7. Course Schedule Schemas (Slide 7 & Admin CRUD)
+ */
+export const COURSE_DAYS = [
+  "SENIN",
+  "SELASA",
+  "RABU",
+  "KAMIS",
+  "JUMAT",
+  "SABTU",
+] as const;
+
+export const COURSE_ROOMS = [
+  "R106",
+  "R107",
+  "R108",
+  "R109",
+  "R303",
+  "R304",
+  "R305",
+  "R306",
+  "R307",
+  "R308",
+] as const;
+
+export const dayOfWeekSchema = z.enum(COURSE_DAYS);
+
+export const timeSlotSchema = z
+  .string()
+  .trim()
+  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Format jam harus HH:mm, contoh 08:00");
+
+export const courseScheduleIdSchema = z.object({
+  id: z.string().uuid("ID Jadwal tidak valid"),
+});
+
+export const listCourseSchedulesInputSchema = z
+  .object({
+    search: z.string().trim().max(255).optional(),
+    dayOfWeek: dayOfWeekSchema.optional(),
+    roomName: z.string().trim().max(64).optional(),
+    isPublished: z.boolean().optional(),
+    limit: z.number().int().min(1).max(100).default(50),
+    offset: z.number().int().min(0).default(0),
+  })
+  .optional();
+
+const courseScheduleBaseObjectSchema = z
+  .object({
+    dayOfWeek: dayOfWeekSchema,
+    startTime: timeSlotSchema,
+    endTime: timeSlotSchema,
+    courseName: z
+      .string()
+      .trim()
+      .min(2, "Nama mata kuliah minimal 2 karakter")
+      .max(255, "Nama mata kuliah maksimal 255 karakter"),
+    className: z
+      .string()
+      .trim()
+      .min(1, "Kelas wajib diisi")
+      .max(32, "Nama kelas maksimal 32 karakter"),
+    roomName: z
+      .string()
+      .trim()
+      .min(1, "Ruangan wajib diisi")
+      .max(64, "Nama ruangan maksimal 64 karakter"),
+    lecturerName: z
+      .string()
+      .trim()
+      .min(2, "Nama dosen pengampu minimal 2 karakter")
+      .max(255, "Nama dosen maksimal 255 karakter"),
+    semester: z
+      .number()
+      .int("Semester harus berupa bilangan bulat")
+      .min(1, "Semester minimal 1")
+      .max(8, "Semester maksimal 8")
+      .nullable()
+      .optional(),
+    academicYear: z.string().trim().max(32).nullable().optional(),
+  })
+  .strict();
+
+export const createCourseScheduleSchema = courseScheduleBaseObjectSchema
+  .extend({
+    isPublished: z.boolean().default(false),
+  })
+  .strict()
+  .refine((data) => data.endTime > data.startTime, {
+    message: "Jam selesai harus lebih besar dari jam mulai",
+    path: ["endTime"],
+  });
+
+export const updateCourseScheduleSchema = courseScheduleBaseObjectSchema
+  .extend({
+    id: z.string().uuid("ID Jadwal tidak valid"),
+  })
+  .strict()
+  .refine((data) => data.endTime > data.startTime, {
+    message: "Jam selesai harus lebih besar dari jam mulai",
+    path: ["endTime"],
+  });
+
+export const setPublishedCourseScheduleSchema = z
+  .object({
+    id: z.string().uuid("ID Jadwal tidak valid"),
+    isPublished: z.boolean(),
+  })
+  .strict();
+
+export const publicCourseScheduleDtoSchema = z
+  .object({
+    id: z.string().uuid(),
+    dayOfWeek: dayOfWeekSchema,
+    startTime: timeSlotSchema,
+    endTime: timeSlotSchema,
+    courseName: z.string(),
+    className: z.string(),
+    roomName: z.string(),
+    lecturerName: z.string(),
+    semester: z.number().int().nullable(),
+    academicYear: z.string().nullable(),
+  })
+  .strict();
+
+export type DayOfWeekType = z.infer<typeof dayOfWeekSchema>;
+export type PublicCourseScheduleDTO = z.infer<
+  typeof publicCourseScheduleDtoSchema
+>;
