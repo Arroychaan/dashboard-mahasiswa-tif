@@ -1,5 +1,6 @@
 import { count } from "drizzle-orm";
 
+import { type db as defaultDb } from "~/server/db";
 import { courseSchedules, type DayOfWeek } from "~/server/db/schema";
 
 export interface DummyCourseScheduleSeed {
@@ -78,19 +79,8 @@ export const DUMMY_COURSE_SCHEDULES: readonly DummyCourseScheduleSeed[] = [
   },
 ] as const;
 
-type CourseScheduleSeedDb = {
-  select: (fields: { total: ReturnType<typeof count> }) => {
-    from: (table: typeof courseSchedules) => Promise<Array<{ total: number | string }>>;
-  };
-  insert: (table: typeof courseSchedules) => {
-    values: (
-      rows: Array<typeof courseSchedules.$inferInsert>,
-    ) => Promise<unknown>;
-  };
-};
-
 export async function seedDummyCourseSchedules(
-  db: CourseScheduleSeedDb,
+  db: typeof defaultDb,
 ): Promise<{ insertedCount: number; skipped: boolean }> {
   const [existing] = await db
     .select({ total: count() })

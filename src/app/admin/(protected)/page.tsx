@@ -15,18 +15,32 @@ export default function AdminOverviewPage() {
   const gradStats = api.graduates.stats.useQuery();
   const lectStats = api.lecturers.stats.useQuery();
   const pubStats = api.publications.stats.useQuery();
+  const schedStats = api.courseSchedules.stats.useQuery();
 
   const isLoading =
-    gradStats.isLoading || lectStats.isLoading || pubStats.isLoading;
-  const isError = gradStats.isError || lectStats.isError || pubStats.isError;
+    gradStats.isLoading ||
+    lectStats.isLoading ||
+    pubStats.isLoading ||
+    schedStats.isLoading;
+  const isError =
+    gradStats.isError ||
+    lectStats.isError ||
+    pubStats.isError ||
+    schedStats.isError;
 
   if (isLoading) {
     return (
-      <LoadingState message="Memuat ringkasan data lulusan, dosen, dan publikasi..." />
+      <LoadingState message="Memuat ringkasan data lulusan, dosen, publikasi, dan jadwal kuliah..." />
     );
   }
 
-  if (isError || !gradStats.data || !lectStats.data || !pubStats.data) {
+  if (
+    isError ||
+    !gradStats.data ||
+    !lectStats.data ||
+    !pubStats.data ||
+    !schedStats.data
+  ) {
     return (
       <ErrorState
         message="Gagal memuat ringkasan statistik administrasi dari server."
@@ -34,6 +48,7 @@ export default function AdminOverviewPage() {
           void gradStats.refetch();
           void lectStats.refetch();
           void pubStats.refetch();
+          void schedStats.refetch();
         }}
       />
     );
@@ -42,6 +57,7 @@ export default function AdminOverviewPage() {
   const g = gradStats.data;
   const l = lectStats.data;
   const p = pubStats.data;
+  const s = schedStats.data;
   const userRole = meQuery.data?.role ?? "EDITOR";
 
   const recentItems = [
@@ -72,6 +88,15 @@ export default function AdminOverviewPage() {
       updatedAt: new Date(item.updatedAt),
       href: "/admin/publikasi",
     })),
+    ...s.recentChanges.map((item) => ({
+      id: `sched-${item.id}`,
+      category: "Jadwal Kuliah" as const,
+      title: `${item.courseName} (Kelas ${item.className})`,
+      subtitle: `${item.dayOfWeek} ${item.startTime}–${item.endTime} • ${item.roomName}`,
+      isPublished: item.isPublished,
+      updatedAt: new Date(item.updatedAt),
+      href: "/admin/jadwal",
+    })),
   ]
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
     .slice(0, 10);
@@ -98,7 +123,7 @@ export default function AdminOverviewPage() {
 
       {/* Primary Summary Metrics */}
       <section aria-label="Ringkasan Jumlah Rekaman">
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
           {/* Graduates Summary */}
           <div className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-6">
             <div>
@@ -191,6 +216,36 @@ export default function AdminOverviewPage() {
               </div>
             </dl>
           </div>
+
+          {/* Course Schedules Summary */}
+          <div className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-6">
+            <div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-slate-700">
+                  Jadwal Mata Kuliah
+                </h2>
+                <Link
+                  href="/admin/jadwal"
+                  className="text-xs font-semibold text-blue-800 underline hover:no-underline"
+                >
+                  Kelola Jadwal
+                </Link>
+              </div>
+              <p className="mt-3 text-3xl font-bold text-slate-900">
+                {s.total}
+              </p>
+            </div>
+            <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-xs">
+              <div className="rounded bg-emerald-50 px-3 py-2 text-emerald-950">
+                <dt className="font-medium">Terpublikasi</dt>
+                <dd className="mt-0.5 text-base font-bold">{s.published}</dd>
+              </div>
+              <div className="rounded bg-amber-50 px-3 py-2 text-amber-950">
+                <dt className="font-medium">Draf</dt>
+                <dd className="mt-0.5 text-base font-bold">{s.draft}</dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </section>
 
@@ -233,6 +288,18 @@ export default function AdminOverviewPage() {
             </div>
             <p className="mt-1 text-xs text-slate-600">
               Kelola jurnal, artikel ilmiah, dan penugasan multi-penulis dosen.
+            </p>
+          </Link>
+
+          <Link
+            href="/admin/jadwal"
+            className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800"
+          >
+            <div className="text-sm font-bold text-blue-900">
+              Jadwal Mata Kuliah
+            </div>
+            <p className="mt-1 text-xs text-slate-600">
+              Atur jadwal kelas harian, ruang R106–R308, dan dosen pengampu.
             </p>
           </Link>
 

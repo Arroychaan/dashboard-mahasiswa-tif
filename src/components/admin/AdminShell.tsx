@@ -53,6 +53,12 @@ const NAV_ITEMS: readonly NavItem[] = [
     minRoles: ["EDITOR", "ADMIN", "SUPER_ADMIN"],
   },
   {
+    href: "/admin/jadwal",
+    label: "Jadwal Kuliah",
+    description: "Jadwal matkul, ruangan, dan dosen",
+    minRoles: ["EDITOR", "ADMIN", "SUPER_ADMIN"],
+  },
+  {
     href: "/admin/pengguna",
     label: "Pengguna & Audit",
     description: "Hak akses akun dan riwayat perubahan",
