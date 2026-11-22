@@ -21,13 +21,19 @@ export interface PublicAnnouncementItem {
 interface AnnouncementsSceneProps {
   announcements: PublicAnnouncementItem[];
   pageIndex?: number;
+  isPaused?: boolean;
   themeTokens?: ThemeTokens;
+  onSelectAnnouncement?: (item: PublicAnnouncementItem) => void;
+  onPageChange?: (pageIndex: number) => void;
 }
 
 export function AnnouncementsScene({
   announcements,
   pageIndex = 0,
+  isPaused = false,
   themeTokens = THEME_CONFIGS.LIGHT,
+  onSelectAnnouncement,
+  onPageChange,
 }: AnnouncementsSceneProps) {
   const { pageItems, safePageIndex, totalPages, totalItems } =
     getPaginatedSlice(announcements, pageIndex, ANNOUNCEMENTS_PAGE_SIZE);
@@ -88,7 +94,7 @@ export function AnnouncementsScene({
           return (
             <article
               key={item.id}
-              className={`flex min-h-0 flex-col justify-between rounded-2xl border p-5 sm:p-6 transition-all shadow-sm ${themeTokens.surface.card} ${themeTokens.surface.cardBorder}`}
+              className={`flex min-h-0 flex-col justify-between rounded-2xl border p-5 sm:p-6 transition-colors shadow-sm ${themeTokens.surface.card} ${themeTokens.surface.cardBorder}`}
             >
               <div className="space-y-3">
                 {/* Badge Category and Event Date */}
@@ -123,11 +129,26 @@ export function AnnouncementsScene({
               </div>
 
               {/* Bottom Card Footer */}
-              <div className="mt-4 pt-3 border-t border-inherit/40 flex items-center justify-between text-[11px] font-medium text-slate-400">
-                <span>Program Studi Teknik Informatika</span>
-                <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
-                  UNISSULA
-                </span>
+              <div className="mt-4 pt-3 border-t border-inherit/40 flex items-center justify-between gap-2 text-xs font-medium">
+                {onSelectAnnouncement ? (
+                  <button
+                    type="button"
+                    onClick={() => onSelectAnnouncement(item)}
+                    className={`inline-flex min-h-[44px] w-full items-center justify-between rounded-lg border px-3.5 text-xs font-bold transition-colors ${themeTokens.surface.badgeBase}`}
+                  >
+                    <span>Ketuk untuk baca lengkap</span>
+                    <span className="font-mono font-bold">UNISSULA</span>
+                  </button>
+                ) : (
+                  <>
+                    <span className="text-[11px] text-slate-400">
+                      Program Studi Teknik Informatika
+                    </span>
+                    <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                      UNISSULA
+                    </span>
+                  </>
+                )}
               </div>
             </article>
           );
@@ -137,24 +158,49 @@ export function AnnouncementsScene({
       {/* Pagination Footer Indicator if more than 3 items */}
       {totalPages > 1 && (
         <div
-          className={`flex shrink-0 items-center justify-between px-2 text-xs font-semibold ${themeTokens.surface.statLabel}`}
+          className={`flex shrink-0 items-center justify-between gap-3 px-2 text-xs font-semibold ${themeTokens.surface.statLabel}`}
         >
           <span>
             Menampilkan halaman {safePageIndex + 1} dari {totalPages}
           </span>
-          <div className="flex gap-1.5">
-            {Array.from({ length: totalPages }, (_, i) => (
-              <span
-                key={i}
-                className={`h-2 w-2 rounded-full transition-all ${
-                  i === safePageIndex
-                    ? "w-5 bg-emerald-600"
-                    : "bg-slate-300 dark:bg-slate-700"
-                }`}
-              />
-            ))}
-          </div>
-          <span>Total {totalItems} Pengumuman</span>
+          {onPageChange ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={safePageIndex <= 0}
+                onClick={() => onPageChange(Math.max(0, safePageIndex - 1))}
+                className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border px-3 text-xs font-bold disabled:opacity-40 ${themeTokens.surface.card} ${themeTokens.surface.cardBorder} ${themeTokens.surface.statValue}`}
+              >
+                Sebelumnya
+              </button>
+              <button
+                type="button"
+                disabled={safePageIndex + 1 >= totalPages}
+                onClick={() =>
+                  onPageChange(Math.min(totalPages - 1, safePageIndex + 1))
+                }
+                className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border px-3 text-xs font-bold disabled:opacity-40 ${themeTokens.surface.card} ${themeTokens.surface.cardBorder} ${themeTokens.surface.statValue}`}
+              >
+                Berikutnya
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-1.5">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <span
+                  key={i}
+                  className={`h-2 w-2 rounded-full transition-all ${
+                    i === safePageIndex
+                      ? "w-5 bg-emerald-600"
+                      : "bg-slate-300 dark:bg-slate-700"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+          <span>
+            Total {totalItems} Pengumuman{isPaused ? " • Jeda" : ""}
+          </span>
         </div>
       )}
     </section>

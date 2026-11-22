@@ -17,7 +17,10 @@ interface BrandedHeaderProps {
   lastUpdatedAt: Date | null;
   isRefreshing: boolean;
   hasTemporarySyncError: boolean;
+  isPaused?: boolean;
   themeTokens?: ThemeTokens;
+  onSelectScene?: (sceneId: PublicSceneId) => void;
+  onResumeSlideshow?: () => void;
 }
 
 export function BrandedHeader({
@@ -25,7 +28,10 @@ export function BrandedHeader({
   lastUpdatedAt,
   isRefreshing,
   hasTemporarySyncError,
+  isPaused = false,
   themeTokens = THEME_CONFIGS.LIGHT,
+  onSelectScene,
+  onResumeSlideshow,
 }: BrandedHeaderProps) {
   const [now, setNow] = useState<Date | null>(null);
 
@@ -127,50 +133,94 @@ export function BrandedHeader({
           </p>
         </div>
 
-        {/* Non-Interactive Scene Indicator & Sync Status */}
-        <div className="flex flex-wrap items-center gap-2" aria-hidden="true">
+        {/* Touch-Friendly Scene Navigation & Sync Status */}
+        <div className="flex flex-wrap items-center gap-1.5">
           {PUBLIC_SCENE_DEFINITIONS.map((scene) => {
             const isActive = scene.id === activeSceneId;
+            const sharedClass = `inline-flex min-h-[44px] items-center rounded-lg border px-3 py-1.5 text-xs font-bold tracking-wide transition-colors 2xl:px-4 2xl:py-2 2xl:text-sm ${
+              isActive
+                ? themeTokens.header.badge
+                : `${themeTokens.header.bg} ${themeTokens.header.subtitle} ${themeTokens.header.border}`
+            }`;
+
+            if (onSelectScene) {
+              return (
+                <button
+                  key={scene.id}
+                  type="button"
+                  onClick={() => onSelectScene(scene.id)}
+                  aria-current={isActive ? "step" : undefined}
+                  className={sharedClass}
+                >
+                  {scene.orderNumber}. {scene.shortLabel}
+                </button>
+              );
+            }
+
             return (
-              <div
-                key={scene.id}
-                className={`rounded border px-3 py-1.5 text-xs font-bold tracking-wide transition-colors 2xl:px-4 2xl:py-2 2xl:text-sm ${
-                  isActive
-                    ? themeTokens.header.badge
-                    : `${themeTokens.header.bg} ${themeTokens.header.subtitle} ${themeTokens.header.border}`
-                }`}
-              >
+              <div key={scene.id} className={sharedClass}>
                 {scene.orderNumber}. {scene.shortLabel}
               </div>
             );
           })}
 
-          <div
-            className={`ml-2 hidden items-center gap-1.5 rounded border px-2.5 py-1.5 text-[11px] font-medium xl:inline-flex 2xl:text-xs ${themeTokens.header.bg} ${themeTokens.header.subtitle} ${themeTokens.header.border}`}
-          >
-            <span
-              className={`h-2 w-2 rounded-full ${
-                hasTemporarySyncError
-                  ? "bg-amber-500"
-                  : isRefreshing
-                    ? "bg-sky-500"
-                    : "bg-emerald-600"
-              }`}
-            />
-            <span>
-              {hasTemporarySyncError
-                ? "Menampilkan data lokal"
-                : lastUpdatedAt
-                  ? `Update: ${new Date(
-                      lastUpdatedAt,
-                    ).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}`
-                  : "Sinkronisasi otomatis"}
-            </span>
-          </div>
+          {isPaused && (
+            <div className="ml-1 flex items-center gap-1.5">
+              <span
+                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border px-2.5 text-xs font-bold ${
+                  themeTokens.id === "MONOCHROME"
+                    ? "border-black bg-neutral-100 text-black"
+                    : themeTokens.id === "DARK"
+                      ? "border-amber-500/60 bg-amber-950 text-amber-200"
+                      : "border-amber-300 bg-amber-50 text-amber-900"
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full bg-amber-500"
+                />
+                Mode Interaktif
+              </span>
+              {onResumeSlideshow && (
+                <button
+                  type="button"
+                  onClick={onResumeSlideshow}
+                  className={`inline-flex min-h-[44px] items-center rounded-lg px-3 text-xs font-bold transition-colors ${themeTokens.header.badge}`}
+                >
+                  Lanjutkan Rotasi
+                </button>
+              )}
+            </div>
+          )}
+
+          {!isPaused && (
+            <div
+              className={`ml-1 hidden items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-medium xl:inline-flex 2xl:text-xs ${themeTokens.header.bg} ${themeTokens.header.subtitle} ${themeTokens.header.border}`}
+            >
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  hasTemporarySyncError
+                    ? "bg-amber-500"
+                    : isRefreshing
+                      ? "bg-sky-500"
+                      : "bg-emerald-600"
+                }`}
+              />
+              <span>
+                {hasTemporarySyncError
+                  ? "Menampilkan data lokal"
+                  : lastUpdatedAt
+                    ? `Update: ${new Date(
+                        lastUpdatedAt,
+                      ).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}`
+                    : "Sinkronisasi otomatis"}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </header>
