@@ -98,10 +98,10 @@ fi
 su - postgres -c "psql -tc \"SELECT 1 FROM pg_roles WHERE rolname='postgres'\" | grep -q 1 && psql -c \"ALTER USER postgres WITH PASSWORD 'postgres_dev_password';\""
 su - postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname='dashboard_mahasiswa'\" | grep -q 1 || psql -c \"CREATE DATABASE dashboard_mahasiswa OWNER postgres;\""
 
-# 4. Salin Pre-Compiled Next.js Standalone Bundle ke /opt/dashboard-mahasiswa
+# 4. Salin Pre-Compiled Next.js Standalone Bundle (tanpa .env dari mesin pengembang)
 echo "[4/7] Memasang paket aplikasi standalone ke ${INSTALL_DIR}..."
 mkdir -p "$INSTALL_DIR"
-cp -a "${APP_SRC_DIR}/." "$INSTALL_DIR/"
+tar -C "$APP_SRC_DIR" --exclude='.env' --exclude='.env.*' -cf - . | tar -C "$INSTALL_DIR" -xf -
 
 # Buat .env hanya jika belum ada (melindungi AUTH_SECRET & konfigurasi eksisting saat reinstall)
 if [ ! -f "${INSTALL_DIR}/.env" ]; then
@@ -123,28 +123,70 @@ EOF
   chmod 600 "${INSTALL_DIR}/.env"
 fi
 
-# Pastikan addon native Linux x86_64 (@node-rs/argon2 & sharp) tersedia saat bundle dibuat dari Windows
+# Pasang dependensi runtime Linux x86_64 dan addon native (@node-rs/argon2 & sharp)
 cd "$INSTALL_DIR"
-echo " -> Memastikan modul native Linux x86_64 (@node-rs/argon2, sharp)..."
-npm install --no-save --no-audit --no-fund --os=linux --cpu=x64 @node-rs/argon2 sharp 2>/dev/null || true
+echo " -> Memasang modul runtime Linux x86_64 untuk Next.js standalone..."
+npm install --omit=dev --no-audit --no-fund --os=linux --cpu=x64
 
-# 5. Jalankan migrasi SQL & seed 5 jadwal dummy awal (idempoten)
-echo "[5/7] Menjalankan migrasi tabel PostgreSQL & seed jadwal awal..."
+echo " -> Memastikan modul native Linux x86_64 (@node-rs/argon2, sharp) di direktori terisolasi..."
+NATIVE_STAGE="/tmp/t4pro-native-addons"
+rm -rf "$NATIVE_STAGE"
+mkdir -p "$NATIVE_STAGE"
+cat > "${NATIVE_STAGE}/package.json" <<'EOF'
+{"name":"t4pro-native-addons","private":true}
+EOF
+npm --prefix "$NATIVE_STAGE" install --no-save --omit=dev --no-audit --no-fund --os=linux --cpu=x64 @node-rs/argon2 sharp
+
+mkdir -p "${INSTALL_DIR}/node_modules"
+rm -rf "${INSTALL_DIR}/node_modules/@node-rs" "${INSTALL_DIR}/node_modules/sharp" "${INSTALL_DIR}/node_modules/@img"
+cp -a "${NATIVE_STAGE}/node_modules/." "${INSTALL_DIR}/node_modules/"
+rm -rf "$NATIVE_STAGE"
+
+# Verifikasi biner native Linux benar-benar dapat dimuat oleh Node.js sebelum lanjut
+cd "$INSTALL_DIR"
+node -e "require('@node-rs/argon2'); require('sharp'); console.log(' -> Modul native Linux (@node-rs/argon2 & sharp) terverifikasi OK');"
+
+# 5. Migrasi SQL terlacak (ON_ERROR_STOP=1), seed 5 jadwal dummy, & bootstrap Super Admin
+echo "[5/7] Menjalankan migrasi tabel PostgreSQL (strict mode) & inisialisasi data..."
+su - postgres -c "psql -d dashboard_mahasiswa -v ON_ERROR_STOP=1" <<'EOSQL'
+CREATE TABLE IF NOT EXISTS _dashboard_sql_migrations (
+  filename text PRIMARY KEY,
+  applied_at timestamptz NOT NULL DEFAULT now()
+);
+-- Catat migrasi lama secara idempoten jika database pernah diinisialisasi sebelum ledger ini ada
+INSERT INTO _dashboard_sql_migrations (filename)
+SELECT m.fname FROM (VALUES
+  ('0000_familiar_kid_colt.sql', to_regclass('public.users') IS NOT NULL),
+  ('0001_chubby_red_ghost.sql', to_regclass('public.users') IS NOT NULL),
+  ('0002_magical_silvermane.sql', to_regclass('public.system_settings') IS NOT NULL),
+  ('0003_perfect_nuke.sql', to_regclass('public.announcements') IS NOT NULL),
+  ('0004_milky_gambit.sql', to_regclass('public.announcements') IS NOT NULL),
+  ('0005_volatile_hiroim.sql', to_regclass('public.course_schedules') IS NOT NULL)
+) AS m(fname, already_exists)
+WHERE m.already_exists
+ON CONFLICT (filename) DO NOTHING;
+EOSQL
+
 for sql_file in "${INSTALL_DIR}"/drizzle/*.sql; do
   if [ -f "$sql_file" ]; then
-    echo "    Menerapkan $(basename "$sql_file")..."
+    fname="$(basename "$sql_file")"
+    is_applied="$(su - postgres -c "psql -d dashboard_mahasiswa -t -A -c \"SELECT 1 FROM _dashboard_sql_migrations WHERE filename = '${fname}';\"")"
+    if [ "$is_applied" = "1" ]; then
+      echo "    Melewati migrasi sudah terpasang: ${fname}"
+      continue
+    fi
+    echo "    Menerapkan migrasi baru: ${fname}..."
     awk 'BEGIN{RS="--> statement-breakpoint"} {print $0 ";"}' "$sql_file" \
-      | su - postgres -c "psql -d dashboard_mahasiswa -v ON_ERROR_STOP=0" >/dev/null 2>&1 || true
+      | su - postgres -c "psql -d dashboard_mahasiswa -v ON_ERROR_STOP=1"
+    su - postgres -c "psql -d dashboard_mahasiswa -v ON_ERROR_STOP=1 -c \"INSERT INTO _dashboard_sql_migrations (filename) VALUES ('${fname}') ON CONFLICT DO NOTHING;\""
   fi
 done
 
-# Jalankan seed 5 data jadwal dummy jika tabel masih kosong
-if [ -f "${INSTALL_DIR}/scripts/seed-course-schedules.ts" ] && command -v npx >/dev/null 2>&1; then
-  npx --yes tsx --env-file="${INSTALL_DIR}/.env" "${INSTALL_DIR}/scripts/seed-course-schedules.ts" 2>/dev/null || true
-fi
-
-# Fallback SQL idempoten jika tsx tidak berjalan offline
-su - postgres -c "psql -d dashboard_mahasiswa" >/dev/null 2>&1 <<'EOSQL' || true
+# Seed 5 jadwal mata kuliah dummy awal (idempoten)
+if [ -f "${INSTALL_DIR}/scripts/seed-course-schedules.mjs" ]; then
+  node --env-file="${INSTALL_DIR}/.env" "${INSTALL_DIR}/scripts/seed-course-schedules.mjs"
+else
+  su - postgres -c "psql -d dashboard_mahasiswa -v ON_ERROR_STOP=1" <<'EOSQL'
 INSERT INTO course_schedules (day_of_week, start_time, end_time, course_name, class_name, room_name, lecturer_name, semester, academic_year, is_published)
 SELECT * FROM (VALUES
   ('SENIN'::day_of_week, '08:00', '09:30', 'Kalkulus', 'A', 'R106', 'Dr. Ir. Hendra Kusuma, M.T.', 1, '2026/2027', true),
@@ -155,14 +197,23 @@ SELECT * FROM (VALUES
 ) AS v(day_of_week, start_time, end_time, course_name, class_name, room_name, lecturer_name, semester, academic_year, is_published)
 WHERE NOT EXISTS (SELECT 1 FROM course_schedules LIMIT 1);
 EOSQL
+fi
 
-# Bootstrap akun Super Admin pertama jika belum ada
-if [ -f "${INSTALL_DIR}/scripts/bootstrap-super-admin.ts" ] && command -v npx >/dev/null 2>&1; then
+# Bootstrap akun SUPER_ADMIN pertama jika belum ada di tabel users (fail loudly jika gagal)
+SUPER_ADMIN_COUNT="$(su - postgres -c "psql -d dashboard_mahasiswa -t -A -c \"SELECT COUNT(*) FROM users WHERE role = 'SUPER_ADMIN';\"")"
+if [ "${SUPER_ADMIN_COUNT:-0}" -eq 0 ]; then
+  if [ ! -f "${INSTALL_DIR}/scripts/bootstrap-super-admin.mjs" ]; then
+    echo "ERROR: ${INSTALL_DIR}/scripts/bootstrap-super-admin.mjs tidak ditemukan. Tidak dapat membuat akun SUPER_ADMIN awal."
+    exit 1
+  fi
+  echo " -> Membuat akun SUPER_ADMIN awal (admin@unissula.ac.id)..."
   export BOOTSTRAP_SUPER_ADMIN_NAME="${BOOTSTRAP_SUPER_ADMIN_NAME:-Kepala Lab Informatika}"
   export BOOTSTRAP_SUPER_ADMIN_EMAIL="${BOOTSTRAP_SUPER_ADMIN_EMAIL:-admin@unissula.ac.id}"
   export BOOTSTRAP_SUPER_ADMIN_PASSWORD="${BOOTSTRAP_SUPER_ADMIN_PASSWORD:-PasswordLabUnissula2026!}"
   export BOOTSTRAP_MFA_OUTPUT_FILE="${INSTALL_DIR}/superadmin-mfa.json"
-  npx --yes tsx --env-file="${INSTALL_DIR}/.env" "${INSTALL_DIR}/scripts/bootstrap-super-admin.ts" 2>/dev/null || true
+  node --env-file="${INSTALL_DIR}/.env" "${INSTALL_DIR}/scripts/bootstrap-super-admin.mjs"
+else
+  echo " -> Akun SUPER_ADMIN sudah tersedia (${SUPER_ADMIN_COUNT} akun), melewati bootstrap."
 fi
 
 # 6. Buat Systemd Service untuk Server Next.js Standalone (Hemat RAM & Start < 1 detik)
@@ -263,6 +314,7 @@ echo " - Kiosk Layar Sentuh  : http://localhost:3000/"
 echo " - Panel Admin (mDNS)  : http://lab-informatika.local:3000/admin"
 echo " - Panel Admin (IP)    : http://${IP_ADDR}:3000/admin"
 echo " - Kelola Jadwal       : http://lab-informatika.local:3000/admin/jadwal"
+echo " - Kredensial MFA Awal : ${INSTALL_DIR}/superadmin-mfa.json"
 echo " - Kiosk User          : ${KIOSK_USER}"
 echo " - Restart perangkat (sudo reboot) untuk langsung masuk Kiosk Mode."
 echo "=================================================================="

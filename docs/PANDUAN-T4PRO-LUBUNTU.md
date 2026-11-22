@@ -40,9 +40,11 @@ Jalankan skrip pengemas *standalone bundle* (ganti `E:` dengan huruf drive flash
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\prepare-t4pro-bundle.ps1 -TargetDrive "E:"
 ```
-Skrip ini akan mem-*build* Next.js `standalone`, menormalisasi `setup-lubuntu.sh` ke format Linux (`LF`), dan menyalinnya ke `E:\t4pro-dashboard`.
+Skrip ini akan mem-*build* Next.js `standalone` terbaru, membersihkan file `.env` lokal serta `devDependencies`, mengompilasi skrip bootstrap/seed menjadi modul ESM mandiri (`.mjs`), menormalisasi `setup-lubuntu.sh` ke format Linux (`LF`), dan menyalinnya ke `E:\t4pro-dashboard`.
 
 ### Langkah B — Di Beelink T4 Pro (Lubuntu 26.04)
+> **Catatan Koneksi Internet Awal:** Instalasi pertama kali (`setup-lubuntu.sh`) membutuhkan koneksi internet di T4 Pro untuk mengunduh paket sistem (`postgresql`, `chromium`, `nodejs`) serta modul native Linux x86_64 (`@node-rs/argon2` dan `sharp`), sementara seluruh kompilasi berat Next.js sudah selesai dilakukan di PC pengembang.
+
 1. Colokkan flashdisk USB ke Beelink T4 Pro, buka terminal di folder `t4pro-dashboard`, lalu jalankan:
    ```bash
    sudo bash setup-lubuntu.sh
@@ -50,8 +52,8 @@ Skrip ini akan mem-*build* Next.js `standalone`, menormalisasi `setup-lubuntu.sh
 2. Skrip otomatis akan:
    - Mengatur hostname mDNS `lab-informatika.local`.
    - Memasang PostgreSQL (tuned 4GB), Node.js 20 LTS, driver VA-API GPU Intel, dan Chromium.
-   - Memasang paket standalone ke `/opt/dashboard-mahasiswa` serta modul native Linux x86_64 (`@node-rs/argon2` dan `sharp`).
-   - Menjalankan seluruh migrasi SQL termasuk tabel `course_schedules` dan mengisi **5 jadwal kuliah dummy awal**.
+   - Memasang paket standalone ke `/opt/dashboard-mahasiswa`, membuat `.env` baru dengan `AUTH_SECRET` acak, serta memverifikasi modul native Linux x86_64 (`@node-rs/argon2` dan `sharp`).
+   - Menjalankan seluruh migrasi SQL secara ketat (tercatat di tabel `_dashboard_sql_migrations`), mengisi **5 jadwal kuliah dummy awal**, dan membuat akun **SUPER_ADMIN** awal beserta berkas MFA `/opt/dashboard-mahasiswa/superadmin-mfa.json`.
    - Mengaktifkan service `dashboard-mahasiswa.service` dan autostart **Chromium Touchscreen Kiosk**.
 3. Setelah selesai, restart perangkat:
    ```bash

@@ -31,6 +31,20 @@ describe("Task 7: Beelink T4 Pro (Lubuntu 26.04 Touchscreen) Deployment Artifact
     expect(content).toContain("server.js");
     expect(content).toContain("seed-course-schedules");
     expect(content).toContain("lab-informatika");
+
+    // Critical #1: pre-bundled ESM bootstrap script invoked via node without silencing failure
+    expect(content).toContain("bootstrap-super-admin.mjs");
+    expect(content).not.toContain("npx --yes tsx");
+
+    // Critical #3: isolated Linux x64 native addon staging + explicit runtime verification
+    expect(content).toContain("/tmp/t4pro-native-addons");
+    expect(content).toContain("require('@node-rs/argon2')");
+    expect(content).toContain("require('sharp')");
+
+    // Important #2: tracked SQL migrations executed with strict ON_ERROR_STOP=1
+    expect(content).toContain("_dashboard_sql_migrations");
+    expect(content).toContain("ON_ERROR_STOP=1");
+    expect(content).not.toContain("ON_ERROR_STOP=0");
   });
 
   it("provides pre-compiled standalone bundle scripts (USB & WiFi) and Indonesian operational guide", () => {
@@ -52,6 +66,17 @@ describe("Task 7: Beelink T4 Pro (Lubuntu 26.04 Touchscreen) Deployment Artifact
     );
     expect(bundlePs1).toContain(".next");
     expect(bundlePs1).toContain("standalone");
+    // Critical #1, #2, #3 & Important #3 checks on prepare-t4pro-bundle.ps1
+    expect(bundlePs1).toContain("-SkipBuild");
+    expect(bundlePs1).toContain("$LASTEXITCODE -ne 0");
+    expect(bundlePs1).toContain(".env*");
+    expect(bundlePs1).toContain("devDependencies");
+    expect(bundlePs1).toContain("bootstrap-super-admin.mjs");
+    expect(bundlePs1).toContain("seed-course-schedules.mjs");
+    // Root-cause regression check: must never copy Windows .next/standalone/node_modules cyclic pnpm junctions
+    expect(bundlePs1).not.toContain("robocopy \"$StandaloneDir\"");
+    expect(bundlePs1).toContain("Join-Path $StandaloneDir \"server.js\"");
+    expect(bundlePs1).toContain("Join-Path $StandaloneDir \".next\"");
 
     const wifiPs1 = fs.readFileSync(
       path.join(ROOT, "scripts/update-t4pro-wifi.ps1"),
@@ -59,6 +84,14 @@ describe("Task 7: Beelink T4 Pro (Lubuntu 26.04 Touchscreen) Deployment Artifact
     );
     expect(wifiPs1).toContain("lab-informatika.local");
     expect(wifiPs1).toContain("standalone");
+    // Important #1 & #2 checks on update-t4pro-wifi.ps1
+    expect(wifiPs1).toContain("$LASTEXITCODE -ne 0");
+    expect(wifiPs1).toContain("[c]hromium.*localhost:3000");
+    expect(wifiPs1).toContain("DISPLAY=:0");
+    expect(wifiPs1).toContain("XAUTHORITY");
+    expect(wifiPs1).toContain("_dashboard_sql_migrations");
+    expect(wifiPs1).toContain("ON_ERROR_STOP=1");
+    expect(wifiPs1).not.toContain("ON_ERROR_STOP=0");
 
     const wifiBat = fs.readFileSync(
       path.join(ROOT, "UPDATE-T4PRO-WIFI.bat"),

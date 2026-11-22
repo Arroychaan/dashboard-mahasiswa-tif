@@ -149,11 +149,25 @@ export function CourseScheduleScene({
   const { pageItems, safePageIndex, totalPages, totalItems } =
     getPaginatedSlice(filtered, pageIndex, COURSE_SCHEDULES_PAGE_SIZE);
 
-  // Combine standard rooms with any custom room names found in schedules
+  // Combine standard rooms with capped custom room names (max 12 pills total)
+  // so Row 2 never overflows onto extra lines and clips the 2x3 schedule grid.
+  const MAX_VISIBLE_ROOM_FILTERS = 12;
   const availableRooms: string[] = [...COURSE_ROOMS];
   for (const item of schedules) {
+    if (availableRooms.length >= MAX_VISIBLE_ROOM_FILTERS) break;
     if (!availableRooms.includes(item.roomName)) {
       availableRooms.push(item.roomName);
+    }
+  }
+  if (
+    roomFilter !== "ALL" &&
+    roomFilter.trim().length > 0 &&
+    !availableRooms.includes(roomFilter)
+  ) {
+    if (availableRooms.length >= MAX_VISIBLE_ROOM_FILTERS) {
+      availableRooms[availableRooms.length - 1] = roomFilter;
+    } else {
+      availableRooms.push(roomFilter);
     }
   }
 

@@ -388,9 +388,7 @@ export function PublicDashboardSlideshow({
     <div
       onPointerDown={handleRootInteraction}
       className={`flex min-h-screen flex-col justify-between transition-colors duration-200 select-none ${
-        isSingleScreenScene
-          ? "lg:h-screen lg:max-h-screen lg:overflow-hidden"
-          : ""
+        isSingleScreenScene ? "kiosk-single-screen" : ""
       } ${themeTokens.container}`}
     >
       {/* Top Institutional Header, Asia/Jakarta Clock & Touch Scene Navigation */}
@@ -410,7 +408,7 @@ export function PublicDashboardSlideshow({
         aria-live="polite"
         data-testid={`public-scene-${activeSceneId.toLowerCase()}`}
         className={`mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col px-5 py-3 lg:px-8 lg:py-4 2xl:max-w-[3600px] 2xl:px-14 2xl:py-8 ${
-          isSingleScreenScene ? "lg:overflow-hidden" : ""
+          isSingleScreenScene ? "kiosk-single-screen-main" : ""
         }`}
       >
         {activeSceneId === "OVERVIEW" && (

@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -200,5 +202,57 @@ describe("Task 4: Public Kiosk Scenes (CourseScheduleScene, AnnouncementsScene, 
     expect(headerHtml).toContain("Mode Interaktif");
     expect(headerHtml).toContain("Lanjutkan Rotasi");
     expect(headerHtml).toContain("min-h-[44px]");
+  });
+
+  it("caps custom room filter pills to prevent vertical overflow while preserving an active custom room, and gates 100vh lock by min-height >= 900px", () => {
+    const now = new Date("2026-11-23T06:30:00.000Z");
+    const manyCustomRoomSchedules: PublicCourseScheduleDTO[] = Array.from(
+      { length: 15 },
+      (_, idx) => ({
+        id: `50000000-0000-4000-8000-0000000000${String(idx + 1).padStart(2, "0")}`,
+        dayOfWeek: "SENIN",
+        startTime: "08:00",
+        endTime: "09:30",
+        courseName: `Kuliah Custom ${idx + 1}`,
+        className: "A",
+        roomName: `LAB-${String(idx + 1).padStart(2, "0")}`,
+        lecturerName: "Dosen Pengampu",
+        semester: 3,
+        academicYear: "2026/2027",
+      }),
+    );
+
+    const html = renderToStaticMarkup(
+      createElement(CourseScheduleScene, {
+        schedules: manyCustomRoomSchedules,
+        dayFilter: "SENIN",
+        roomFilter: "LAB-15",
+        pageIndex: 0,
+        now,
+        themeTokens: THEME_CONFIGS.LIGHT,
+      }),
+    );
+
+    // 10 default rooms + at most 2 custom rooms = 12 room pills total (+ "Semua Ruangan")
+    expect(html).toContain("LAB-15"); // Active custom room is preserved
+    expect(html).not.toContain("LAB-14"); // Excess custom rooms are capped
+
+    // Height-gated 100vh lock prevents clipping on 1280x720 / 1366x768 touchscreens
+    const globalsCss = fs.readFileSync(
+      path.join(process.cwd(), "src/styles/globals.css"),
+      "utf8",
+    );
+    expect(globalsCss).toContain("min-height: 900px");
+    expect(globalsCss).toContain(".kiosk-single-screen");
+
+    const slideshowSrc = fs.readFileSync(
+      path.join(
+        process.cwd(),
+        "src/components/public/PublicDashboardSlideshow.tsx",
+      ),
+      "utf8",
+    );
+    expect(slideshowSrc).toContain("kiosk-single-screen");
+    expect(slideshowSrc).not.toContain("lg:h-screen lg:max-h-screen");
   });
 });
