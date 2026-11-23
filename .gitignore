@@ -48,3 +48,6 @@ yarn-error.log*
 
 # idea files
 .idea
+
+# t4pro build bundle
+deploy/t4pro-lubuntu/usb-bundle/
