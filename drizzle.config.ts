@@ -1,5 +1,7 @@
 import { type Config } from "drizzle-kit";
 
+process.loadEnvFile?.(".env");
+
 import { env } from "~/env";
 
 export default {
